@@ -8,7 +8,29 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js">
+// ── МОБИЛЬНЫЙ SHEET ──────────────────────────────────────────────────────────
+window.toggleSheet=function(){
+  const sb=document.getElementById('sidebar');
+  sb.classList.toggle('open');
+};
+
+// Закрывать sheet при тапе на карту
+document.getElementById('map').addEventListener('click',function(){
+  const sb=document.getElementById('sidebar');
+  if(sb.classList.contains('open')) sb.classList.remove('open');
+});
+
+// Автооткрытие sheet при выборе объекта из pick()
+const _origPick=window.pick;
+window.pick=function(i){
+  _origPick(i);
+  // На мобилке закрыть sheet после выбора
+  if(window.innerWidth<=768){
+    setTimeout(()=>{ document.getElementById('sidebar').classList.remove('open'); },300);
+  }
+};
+</script>
 <style>
 :root{--bg:#0a0c0f;--panel:#10141a;--border:#1e2733;--accent:#e8a020;--accent2:#3b8beb;--text:#c8d4e0;--dim:#5a6a7a;--red:#e74c3c}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -48,6 +70,102 @@ header{background:var(--panel);border-bottom:1px solid var(--border);padding:0 2
 .ph{display:flex;align-items:center;gap:8px;margin-bottom:4px}.ph img{width:18px;height:18px;image-rendering:pixelated}.pt{font-size:15px;font-weight:700}
 .pi{font-family:'Share Tech Mono',monospace;font-size:10px;color:#e8a020;opacity:.75;margin-bottom:8px}.pr{display:flex;justify-content:space-between;padding:4px 0;border-top:1px solid #1e2733;font-size:13px}
 .pl{color:var(--dim)}.pv.hl{color:#3b8beb}.pv.au{color:#e74c3c}
+
+/* ═══════════════════════════════════════════
+   МОБИЛЬНАЯ ВЕРСИЯ  (≤ 768px)
+═══════════════════════════════════════════ */
+@media(max-width:768px){
+
+  /* Хедер — две строки */
+  header{
+    height:auto;
+    flex-wrap:wrap;
+    padding:8px 12px;
+    gap:8px;
+    position:relative;
+  }
+  .logo{ order:0; flex:1; }
+  .logo-l1{ font-size:14px; }
+  .upd{ order:1; }
+  .search-wrap{ order:2; max-width:100%; flex:1 1 100%; }
+  .filters{ order:3; flex:1 1 100%; gap:5px; }
+  .fbtn{ flex:1; text-align:center; padding:5px 4px; font-size:11px; }
+  .stats{ display:none; }
+
+  /* Карта на весь экран */
+  .main{ flex-direction:column; position:relative; }
+  #map{ flex:1; height:100%; }
+
+  /* Сайдбар → нижний sheet */
+  .sidebar{
+    position:fixed;
+    bottom:0; left:0; right:0;
+    width:100%;
+    height:var(--sheet-h, 56px);
+    background:var(--panel);
+    border-top:1px solid var(--border);
+    border-left:none;
+    display:flex;
+    flex-direction:column;
+    z-index:800;
+    transition:height .3s cubic-bezier(.4,0,.2,1);
+    border-radius:14px 14px 0 0;
+    box-shadow:0 -4px 24px rgba(0,0,0,.5);
+  }
+  .sidebar.open{ height:65vh; }
+
+  /* Ручка для свайпа */
+  .sb-head{
+    cursor:pointer;
+    user-select:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 16px;
+    height:56px;
+    flex-shrink:0;
+  }
+  .sb-handle{
+    width:36px; height:4px;
+    background:var(--border);
+    border-radius:2px;
+    position:absolute;
+    top:8px; left:50%; transform:translateX(-50%);
+  }
+  .sb-arrow{ color:var(--dim); font-size:14px; transition:transform .3s; }
+  .sidebar.open .sb-arrow{ transform:rotate(180deg); }
+  .sb-list{ overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+  /* Попап — фиксированная плашка снизу */
+  #custom-popup{
+    position:fixed !important;
+    bottom:60px !important;
+    left:12px !important; right:12px !important;
+    top:auto !important;
+    width:auto !important;
+    height:auto !important;
+    display:none;
+    pointer-events:none;
+    overflow:visible;
+    z-index:900;
+  }
+  #custom-popup.visible{ display:block; }
+  .cp-wrap{
+    transform:none !important;
+    position:static !important;
+    width:100%;
+    border-radius:10px;
+    animation:slideUp .2s ease both;
+    pointer-events:auto;
+  }
+  @keyframes slideUp{
+    from{ opacity:0; transform:translateY(16px); }
+    to{ opacity:1; transform:none; }
+  }
+
+  /* Карта не перекрывается сайдбаром */
+  #map{ padding-bottom:56px; }
+}
 </style>
 </head>
 <body>
@@ -61,7 +179,7 @@ header{background:var(--panel);border-bottom:1px solid var(--border);padding:0 2
 <div class="main">
   <div id="map"></div>
   <div id="custom-popup"><div class="cp-wrap"><button class="cp-close" onclick="closePopup()">×</button><div id="cp-body"></div></div></div>
-  <div class="sidebar"><div class="sb-head">Объекты · <span id="cnt">0</span></div><div class="sb-list" id="list"></div></div>
+  <div class="sidebar" id="sidebar"><div class="sb-handle"></div><div class="sb-head" onclick="toggleSheet()">Объекты · <span id="cnt">0</span><span class="sb-arrow">▲</span></div><div class="sb-list" id="list"></div></div>
 </div>
 <script>
 var PROXY='https://arz.danvox123hyu.workers.dev';
@@ -158,29 +276,11 @@ function setMapBounds(){
   map.setMaxBounds(bounds);
 }
 
-function fmtTimeLeft(ts){
-  if(!ts) return null;
-  const diff=ts*1000-Date.now();
-  if(diff<=0) return 'завершён';
-  const h=Math.floor(diff/3600000);
-  const m=Math.floor((diff%3600000)/60000);
-  if(h>=24){ const d=Math.floor(h/24); return d+'д '+( h%24)+'ч'; }
-  if(h>0) return h+'ч '+m+'мин';
-  return m+'мин';
-}
-
 function popupHtml(d){
   const isH=d.t==='h',au=d.status==='auction'||d.bstatus==='auction';
   const status=au?'🔨 Аукцион':(d.owner==='The State'?'🟢 Свободен':'✅ Занят');
   const sub=isH?`🏠 Дом #${d.did}`:`🏪 Бизнес #${d.did} · ${(BT[d.type]||('Тип '+d.type))}`;
-  let extra='';
-  if(isH && au){
-    if(d.auStartPrice) extra+=`<div class="pr"><span class="pl">Старт. цена</span><span class="pv au">${Number(d.auStartPrice).toLocaleString()} $</span></div>`;
-    if(d.auMinBet)     extra+=`<div class="pr"><span class="pl">Мин. ставка</span><span class="pv au">${Number(d.auMinBet).toLocaleString()} $</span></div>`;
-    const tl=fmtTimeLeft(d.auTimeEnd);
-    if(tl) extra+=`<div class="pr"><span class="pl">Осталось</span><span class="pv au">⏱ ${tl}</span></div>`;
-  }
-  return `<div class="pc"><div class="ph"><img src="${mkIcon(d.k||'house_0')}"><div class="pt">${d.name||'Объект'}</div></div><div class="pi">${sub}</div><div class="pr"><span class="pl">Владелец</span><span class="pv hl">${d.owner||'—'}</span></div><div class="pr"><span class="pl">Статус</span><span class="pv ${au?'au':''}">${status}</span></div>${extra}</div>`;
+  return `<div class="pc"><div class="ph"><img src="${mkIcon(d.k||'house_0')}"><div class="pt">${d.name||'Объект'}</div></div><div class="pi">${sub}</div><div class="pr"><span class="pl">Владелец</span><span class="pv hl">${d.owner||'—'}</span></div><div class="pr"><span class="pl">Статус</span><span class="pv ${au?'au':''}">${status}</span></div></div>`;
 }
 
 function positionPopup(){ if(!popupItem)return; const p=map.project(popupItem.geometry.coordinates); const mapEl=document.getElementById('map'); const main=mapEl.parentElement.getBoundingClientRect(); const mr=mapEl.getBoundingClientRect(); const el=document.getElementById('custom-popup'); el.style.left=(mr.left-main.left+p.x)+'px'; el.style.top=(mr.top-main.top+p.y)+'px'; }
@@ -315,6 +415,28 @@ setTimeout(initApp,1200);
 document.querySelectorAll('.fbtn').forEach(btn=>btn.addEventListener('click',()=>{const f=btn.dataset.f;if(f==='houses'){sH=!sH;btn.classList.toggle('on',sH)}if(f==='businesses'){sB=!sB;btn.classList.toggle('on',sB)}if(f==='auction'){sA=!sA;btn.classList.toggle('on',sA)}render();}));
 let st;document.getElementById('q').addEventListener('input',e=>{clearTimeout(st);st=setTimeout(()=>{sq=e.target.value.trim();render();},220)});
 document.addEventListener('mousedown',e=>{const p=document.getElementById('custom-popup');if(!p.classList.contains('visible'))return;const wrap=p.querySelector('.cp-wrap');if(wrap&&!wrap.contains(e.target))closePopup();});
+
+// ── МОБИЛЬНЫЙ SHEET ──────────────────────────────────────────────────────────
+window.toggleSheet=function(){
+  const sb=document.getElementById('sidebar');
+  sb.classList.toggle('open');
+};
+
+// Закрывать sheet при тапе на карту
+document.getElementById('map').addEventListener('click',function(){
+  const sb=document.getElementById('sidebar');
+  if(sb.classList.contains('open')) sb.classList.remove('open');
+});
+
+// Автооткрытие sheet при выборе объекта из pick()
+const _origPick=window.pick;
+window.pick=function(i){
+  _origPick(i);
+  // На мобилке закрыть sheet после выбора
+  if(window.innerWidth<=768){
+    setTimeout(()=>{ document.getElementById('sidebar').classList.remove('open'); },300);
+  }
+};
 </script>
 </body>
 </html>
