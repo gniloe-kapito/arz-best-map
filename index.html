@@ -5,14 +5,6 @@
 <link rel="icon" type="image/png" href="https://i.pinimg.com/236x/51/d2/3d/51d23d281b5a29a71ab0e2e79252ab76.jpg">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Queen Creek Map — Arizona RP by Nikitos_Ciganin</title>
-<meta property="og:title" content="Queen Creek Map — Arizona RP">
-<meta property="og:description" content="Интерактивная карта сервера Queen Creek | Arizona RP. by Nikitos_Ciganin">
-<meta property="og:image" content="https://i.pinimg.com/236x/51/d2/3d/51d23d281b5a29a71ab0e2e79252ab76.jpg">
-<meta property="og:type" content="website">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Queen Creek Map — Arizona RP">
-<meta name="twitter:description" content="Интерактивная карта сервера Queen Creek | Arizona RP. by Nikitos_Ciganin">
-<meta name="twitter:image" content="https://i.pinimg.com/236x/51/d2/3d/51d23d281b5a29a71ab0e2e79252ab76.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
@@ -166,11 +158,29 @@ function setMapBounds(){
   map.setMaxBounds(bounds);
 }
 
+function fmtTimeLeft(ts){
+  if(!ts) return null;
+  const diff=ts*1000-Date.now();
+  if(diff<=0) return 'завершён';
+  const h=Math.floor(diff/3600000);
+  const m=Math.floor((diff%3600000)/60000);
+  if(h>=24){ const d=Math.floor(h/24); return d+'д '+( h%24)+'ч'; }
+  if(h>0) return h+'ч '+m+'мин';
+  return m+'мин';
+}
+
 function popupHtml(d){
   const isH=d.t==='h',au=d.status==='auction'||d.bstatus==='auction';
   const status=au?'🔨 Аукцион':(d.owner==='The State'?'🟢 Свободен':'✅ Занят');
   const sub=isH?`🏠 Дом #${d.did}`:`🏪 Бизнес #${d.did} · ${(BT[d.type]||('Тип '+d.type))}`;
-  return `<div class="pc"><div class="ph"><img src="${mkIcon(d.k||'house_0')}"><div class="pt">${d.name||'Объект'}</div></div><div class="pi">${sub}</div><div class="pr"><span class="pl">Владелец</span><span class="pv hl">${d.owner||'—'}</span></div><div class="pr"><span class="pl">Статус</span><span class="pv ${au?'au':''}">${status}</span></div></div>`;
+  let extra='';
+  if(isH && au){
+    if(d.auStartPrice) extra+=`<div class="pr"><span class="pl">Старт. цена</span><span class="pv au">${Number(d.auStartPrice).toLocaleString()} $</span></div>`;
+    if(d.auMinBet)     extra+=`<div class="pr"><span class="pl">Мин. ставка</span><span class="pv au">${Number(d.auMinBet).toLocaleString()} $</span></div>`;
+    const tl=fmtTimeLeft(d.auTimeEnd);
+    if(tl) extra+=`<div class="pr"><span class="pl">Осталось</span><span class="pv au">⏱ ${tl}</span></div>`;
+  }
+  return `<div class="pc"><div class="ph"><img src="${mkIcon(d.k||'house_0')}"><div class="pt">${d.name||'Объект'}</div></div><div class="pi">${sub}</div><div class="pr"><span class="pl">Владелец</span><span class="pv hl">${d.owner||'—'}</span></div><div class="pr"><span class="pl">Статус</span><span class="pv ${au?'au':''}">${status}</span></div>${extra}</div>`;
 }
 
 function positionPopup(){ if(!popupItem)return; const p=map.project(popupItem.geometry.coordinates); const mapEl=document.getElementById('map'); const main=mapEl.parentElement.getBoundingClientRect(); const mr=mapEl.getBoundingClientRect(); const el=document.getElementById('custom-popup'); el.style.left=(mr.left-main.left+p.x)+'px'; el.style.top=(mr.top-main.top+p.y)+'px'; }
