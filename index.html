@@ -177,8 +177,6 @@ header{background:var(--panel);border-bottom:1px solid var(--border);padding:0 2
     to{ opacity:1; transform:none; }
   }
 
-  /* Карта не перекрывается сайдбаром — через отступ снаружи, не padding */
-  #map{ margin-bottom:0; }
 }
 </style>
 </head>
@@ -207,7 +205,6 @@ const ICONS={
 function mkIcon(k){ return ICONS[k]||ICONS['house_0']; }
 
 const BT={0:'Амуниция/Тир',1:'Бар',2:'Магазин 24/7',3:'Магазин одежды',4:'Городская ферма'};
-const ICON={house_0:['#3b8beb','🏠'],house_2:['#e74c3c','🔨'],business_0:['#e8a020','🏪'],business_1:['#2ecc71','🏪'],business_2:['#e74c3c','🔨']};
 
 let allH=[],allB=[],shown=[],selectedId=null,selectedType=null,popupItem=null,sq='',sH=true,sB=true,sA=false,lastSyncTs=0;
 const map=new maplibregl.Map({
@@ -232,7 +229,6 @@ function hKey(h){ return h.status==='auction'?'house_2':'house_0'; }
 function bKey(b){ if(b.owner==='The State')return'business_1'; if(b.bstatus==='auction')return'business_2'; return'business_0'; }
 
 
-function setupImages(){ return Promise.resolve(); }
 
 function loadMapImages(cb){
   const keys=['house_0','house_2','business_0','business_1','business_2'];
@@ -488,7 +484,7 @@ async function initApp(){
   restoreCache();
   loadData();
   setInterval(loadData,120000);
-  }); // end loadMapImages
+  });
 }
 
 map.on('styledata',initApp);
