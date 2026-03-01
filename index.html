@@ -55,7 +55,7 @@ header{background:var(--panel);border-bottom:1px solid var(--border);padding:0 2
 .upd{display:flex;align-items:center;gap:6px;font-family:'Share Tech Mono',monospace;font-size:11px}
 #upd-status{color:var(--dim)} #upd-status.loading{color:var(--accent)} #upd-status.ok{color:#2ecc71} #upd-status.err{color:var(--red)}
 .rbtn{background:none;border:1px solid var(--border);color:var(--dim);padding:3px 8px;font-family:'Share Tech Mono',monospace;font-size:10px;cursor:pointer;border-radius:3px}
-.main{display:flex;flex:1;overflow:hidden}#map{flex:1;background:#0d1117 url('fone.png') center/cover no-repeat}.sb-head{padding:11px 15px;border-bottom:1px solid var(--border);font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--dim)}
+.main{display:flex;flex:1;overflow:hidden}#map{flex:1;background:#0d1117}.sb-head{padding:11px 15px;border-bottom:1px solid var(--border);font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--dim)}
 .sb-list{flex:1;overflow-y:auto}.li{padding:8px 13px;border-bottom:1px solid rgba(30,39,51,.5);cursor:pointer;display:flex;align-items:flex-start;gap:8px}
 .li.sel{background:rgba(232,160,32,.07);border-left:2px solid var(--accent);padding-left:11px}.li-ico{width:26px;height:26px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
 .li-info{flex:1;min-width:0}.li-id{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim)}.li-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -207,10 +207,12 @@ const map=new maplibregl.Map({
   container:'map',
   style:{version:8,sources:{
     bgimg:{type:'image',url:MAP_BG,coordinates:[[-180,85.0511287798066],[90,85.0511287798066],[90,-66.51326044311186],[-180,-66.51326044311186]]},
-    bg:{type:'raster',tiles:[TILE],tileSize:256,minzoom:3,maxzoom:3}
+    bg:{type:'raster',tiles:[TILE],tileSize:256,minzoom:3,maxzoom:3},
+    foneimg:{type:'image',url:'fone.png',coordinates:(function(){const nw=function(x,y){const world=256*Math.pow(2,3);const px=(x+3000)*0.256;const py=(3000-y)*0.256;const lng=(px/world)*360-180;const n=Math.PI*(1-(2*py)/world);const lat=(180/Math.PI)*Math.atan(Math.sinh(n));return[lng,lat]};return[nw(-3000,3000),nw(3000,3000),nw(3000,-3000),nw(-3000,-3000)]})()}
   },layers:[
     {id:'bgimg',type:'raster',source:'bgimg'},
-    {id:'bg',type:'raster',source:'bg','paint':{'raster-opacity':0.92}}
+    {id:'bg',type:'raster',source:'bg','paint':{'raster-opacity':0.92}},
+    {id:'foneimg-layer',type:'raster',source:'foneimg','paint':{'raster-opacity':1}}
   ]},
   center:[0,0],zoom:3,minZoom:2,maxZoom:6,attributionControl:false,dragRotate:false,pitchWithRotate:false,touchPitch:false,touchZoomRotate:false
 });
