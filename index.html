@@ -201,17 +201,13 @@ let allH=[],allB=[],shown=[],selectedId=null,selectedType=null,popupItem=null,sq
 const map=new maplibregl.Map({
   container:'map',
   style:{version:8,sources:{
-    bgimg:{type:'image',url:MAP_BG,coordinates:[[-180,85.0511287798066],[90,85.0511287798066],[90,-66.51326044311186],[-180,-66.51326044311186]]},
     bg:{type:'raster',tiles:[TILE],tileSize:256,minzoom:3,maxzoom:3}
   },layers:[
-    {id:'bgimg',type:'raster',source:'bgimg'},
-    {id:'bg',type:'raster',source:'bg','paint':{'raster-opacity':0.92}}
+    {id:'bg-fill',type:'background',paint:{'background-color':'#0d1117'}},
+    {id:'bg',type:'raster',source:'bg'}
   ]},
-  center:[0,0],zoom:3,minZoom:2,maxZoom:6,attributionControl:false,dragRotate:false,pitchWithRotate:false,touchPitch:false,touchZoomRotate:false
+  center:[0,0],zoom:3,minZoom:2,maxZoom:6,attributionControl:false,dragRotate:false,pitchWithRotate:false
 });
-
-// Гарантированно отключаем поворот на всех устройствах
-map.touchZoomRotate.disableRotation();
 
 function gameToLngLat(x,y){
   const world=256*Math.pow(2,3);
