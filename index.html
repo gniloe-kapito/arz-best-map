@@ -274,6 +274,9 @@ function setSources(){
     'icon-allow-overlap':true,
     'icon-ignore-placement':true,
   }});
+  sourcesReady=true;
+  // Если данные уже загружены из кэша до setSources() — отрисуем их сейчас
+  render();
 }
 
 function setMapBounds(){
@@ -317,6 +320,7 @@ function setSelected(id,t){ selectedId=id; selectedType=t; const f=id?shown.find
 
 function mq(d,q){ if(!q)return true; var id=Number(d.id); var sid=Number.isFinite(id)?id-1:null; return (d.name||'').toLowerCase().includes(q)||(d.owner||'').toLowerCase().includes(q)||String(d.id)===q||String(sid)===q||('#'+String(d.id))===q||('#'+String(sid))===q; }
 
+let sourcesReady=false;
 function render(){
   const q=sq.toLowerCase();
   const hf=sH?allH.filter(d=>(!sA||d.status==='auction')&&mq(d,q)):[];
@@ -325,6 +329,7 @@ function render(){
   const hFeat=hf.map(d=>({type:'Feature',geometry:{type:'Point',coordinates:gameToLngLat(d.lx,d.ly)},properties:{...d,t:'h',did:d.id-1,sid:d.id-1,id:d.id,k:hKey(d),icon:hKey(d)}}));
   const bFeat=bf.map(d=>({type:'Feature',geometry:{type:'Point',coordinates:gameToLngLat(d.lx,d.ly)},properties:{...d,t:'b',did:d.id-1,sid:d.id-1,id:d.id,k:bKey(d),icon:bKey(d)}}));
   shown=[...hFeat,...bFeat];
+  if(!sourcesReady||!map.getSource('houses')||!map.getSource('biz')) return;
   map.getSource('houses').setData({type:'FeatureCollection',features:hFeat});
   map.getSource('biz').setData({type:'FeatureCollection',features:bFeat});
   setSelected(selectedId,selectedType);
