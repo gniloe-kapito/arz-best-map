@@ -436,6 +436,7 @@ async function initApp(){
   setSources();
   setMapBounds();
   map.resize(); // Пересчитать canvas после установки bounds
+  setTimeout(refreshFone, 100); // Обновить фон после resize (мобилка)
   map.on('click','houses-points',e=>{const f=e.features[0];setSelected(f.properties.id,f.properties.t);showPopup(f);});
   map.on('click','biz-points',e=>{const f=e.features[0];setSelected(f.properties.id,f.properties.t);showPopup(f);});
   map.on('move zoom',positionPopup);
@@ -448,10 +449,19 @@ async function initApp(){
 map.on('styledata',initApp);
 setTimeout(initApp,1200);
 
+// Вычисляем угловые координаты фона по игровым координатам
+function getFoneCoords(){
+  return [gameToLngLat(-3000,3000),gameToLngLat(3000,3000),gameToLngLat(3000,-3000),gameToLngLat(-3000,-3000)];
+}
+// Обновить image-источник foneimg (нужно после resize на мобилке)
+function refreshFone(){
+  const src=map.getSource('foneimg');
+  if(src) src.updateImage({url:'fone.png',coordinates:getFoneCoords()});
+}
 // Принудительно пересчитываем размер canvas MapLibre при любом изменении размеров окна
-window.addEventListener('resize', function(){ map.resize(); });
+window.addEventListener('resize', function(){ map.resize(); setTimeout(refreshFone, 50); });
 // Вызываем resize после загрузки, чтобы canvas совпал с реальным размером div
-map.once('load', function(){ setTimeout(function(){ map.resize(); }, 100); });
+map.once('load', function(){ setTimeout(function(){ map.resize(); refreshFone(); }, 100); });
 
 document.querySelectorAll('.fbtn').forEach(btn=>btn.addEventListener('click',()=>{const f=btn.dataset.f;if(f==='houses'){sH=!sH;btn.classList.toggle('on',sH)}if(f==='businesses'){sB=!sB;btn.classList.toggle('on',sB)}if(f==='auction'){sA=!sA;btn.classList.toggle('on',sA)}render();}));
 let st;document.getElementById('q').addEventListener('input',e=>{clearTimeout(st);st=setTimeout(()=>{sq=e.target.value.trim();render();},220)});
