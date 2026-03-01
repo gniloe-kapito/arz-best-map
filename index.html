@@ -197,7 +197,7 @@ const ICONS={
 };
 function mkIcon(k){ return ICONS[k]||ICONS['house_0']; }
 
-const TILE='https://cors.isomorphic-git.org/https://pc.rod-ins.com/resource/web/arizona/map_dark/{z}/{x}/{y}.png';
+const TILE='https://pc.rod-ins.com/resource/web/arizona/map_dark/{z}/{x}/{y}.png';
 const MAP_BG='https://static.wikia.nocookie.net/gtawiki/images/a/a6/StateofSanAndreas-GTASA-TerrainMap.jpg/revision/latest?cb=20140207210705';
 const BT={0:'Амуниция/Тир',1:'Бар',2:'Магазин 24/7',3:'Магазин одежды',4:'Городская ферма'};
 const ICON={house_0:['#3b8beb','🏠'],house_2:['#e74c3c','🔨'],business_0:['#e8a020','🏪'],business_1:['#2ecc71','🏪'],business_2:['#e74c3c','🔨']};
@@ -206,11 +206,9 @@ let allH=[],allB=[],shown=[],selectedId=null,selectedType=null,popupItem=null,sq
 const map=new maplibregl.Map({
   container:'map',
   style:{version:8,sources:{
-    bgimg:{type:'image',url:MAP_BG,coordinates:[[-180,85.0511287798066],[90,85.0511287798066],[90,-66.51326044311186],[-180,-66.51326044311186]]},
     bg:{type:'raster',tiles:[TILE],tileSize:256,minzoom:3,maxzoom:3},
     foneimg:{type:'image',url:'fone.png',coordinates:(function(){const nw=function(x,y){const world=256*Math.pow(2,3);const px=(x+3000)*0.256;const py=(3000-y)*0.256;const lng=(px/world)*360-180;const n=Math.PI*(1-(2*py)/world);const lat=(180/Math.PI)*Math.atan(Math.sinh(n));return[lng,lat]};return[nw(-3000,3000),nw(3000,3000),nw(3000,-3000),nw(-3000,-3000)]})()}
   },layers:[
-    {id:'bgimg',type:'raster',source:'bgimg'},
     {id:'bg',type:'raster',source:'bg','paint':{'raster-opacity':0.92}},
     {id:'foneimg-layer',type:'raster',source:'foneimg','paint':{'raster-opacity':1}}
   ]},
