@@ -188,84 +188,60 @@ header{background:var(--panel);border-bottom:1px solid var(--border);padding:0 2
 </div>
 <script>
 var PROXY='https://arz.danvox123hyu.workers.dev';
-// ── FONE.PNG → ТАЙЛЫ через кастомный протокол ────────────────────────────────
-// Нарезаем fone.png на 64 тайла 256×256 (зум 3, сетка 8×8) в памяти браузера
-// и отдаём их MapLibre через addProtocol — работает на любом устройстве
+// ── FONE.PNG → ТАЙЛЫ через кастомный протокол ──────────────────────────────
 (function(){
-  const FONE_URL = 'fone.png';
-  const ZOOM = 3;
-  const GRID = Math.pow(2, ZOOM); // 8×8 = 64 тайла
-  const TILE_SIZE = 256;
-  const cache = {};   // {x_y: blob URL}
-  let imgReady = false;
-  let imgFailed = false;
-  const offscreen = document.createElement('canvas');
-  offscreen.width  = GRID * TILE_SIZE;  // 2048
-  offscreen.height = GRID * TILE_SIZE;  // 2048
-  const ctx = offscreen.getContext('2d');
+  const ZOOM=3, GRID=8, TS=256;
+  const tiles={};
+  let ready=false, failed=false;
 
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.onload = function(){
-    ctx.drawImage(img, 0, 0, offscreen.width, offscreen.height);
-    imgReady = true;
+  const oc=document.createElement('canvas');
+  oc.width=oc.height=GRID*TS; // 2048x2048
+  const ctx=oc.getContext('2d');
+
+  const img=new Image();
+  img.onload=function(){
+    ctx.drawImage(img,0,0,oc.width,oc.height);
+    ready=true;
   };
-  img.onerror = function(){ imgFailed = true; };
-  img.src = FONE_URL;
+  img.onerror=function(){ failed=true; };
+  img.src='fone.png';
 
-  // Получить тайл x,y — рисует кусок в маленький canvas и возвращает blob
-  function getTile(tx, ty, cb){
-    const key = tx+'_'+ty;
-    if(cache[key]){ cb(null, cache[key]); return; }
-    if(imgFailed){ cb(new Error('fone load failed')); return; }
-
-    function attempt(tries){
-      if(imgReady){
-        try{
-          const tc = document.createElement('canvas');
-          tc.width = tc.height = TILE_SIZE;
-          const tcx = tc.getContext('2d');
-          tcx.drawImage(offscreen,
-            tx * TILE_SIZE, ty * TILE_SIZE, TILE_SIZE, TILE_SIZE,
-            0, 0, TILE_SIZE, TILE_SIZE
-          );
-          tc.toBlob(function(blob){
-            const url = URL.createObjectURL(blob);
-            cache[key] = url;
-            cb(null, url);
-          }, 'image/png');
-        }catch(e){ cb(e); }
-      } else if(tries > 0){
-        setTimeout(function(){ attempt(tries-1); }, 100);
+  function sliceTile(tx,ty,cb){
+    const key=tx+','+ty;
+    if(tiles[key]){ cb(null,tiles[key]); return; }
+    if(failed){ cb(new Error('img failed')); return; }
+    var wait=0;
+    function trySlice(){
+      if(ready){
+        var tc=document.createElement('canvas');
+        tc.width=tc.height=TS;
+        tc.getContext('2d').drawImage(oc,tx*TS,ty*TS,TS,TS,0,0,TS,TS);
+        tc.toBlob(function(blob){
+          var fr=new FileReader();
+          fr.onload=function(){ tiles[key]=fr.result; cb(null,fr.result); };
+          fr.readAsArrayBuffer(blob);
+        },'image/png');
+      } else if(wait<50){
+        wait++;
+        setTimeout(trySlice,100);
       } else {
-        cb(new Error('fone timeout'));
+        cb(new Error('timeout'));
       }
     }
-    attempt(40); // ждём до 4 секунд
+    trySlice();
   }
 
-  maplibregl.addProtocol('fone-tile', function(params, cb){
-    // params.url = 'fone-tile://3/x/y'
-    const parts = params.url.replace('fone-tile://', '').split('/');
-    const z = parseInt(parts[0]);
-    const tx = parseInt(parts[1]);
-    const ty = parseInt(parts[2]);
-
-    // Показываем только на нашем зуме
-    if(z !== ZOOM || tx < 0 || tx >= GRID || ty < 0 || ty >= GRID){
-      cb(new Error('out of range'));
-      return function(){};
+  maplibregl.addProtocol('fone-tile',function(params,cb){
+    var parts=params.url.replace('fone-tile://','').split('/');
+    var z=+parts[0], tx=+parts[1], ty=+parts[2];
+    if(z!==ZOOM||tx<0||tx>=GRID||ty<0||ty>=GRID){
+      cb(new Error('oor')); return function(){};
     }
-
-    getTile(tx, ty, function(err, blobUrl){
-      if(err){ cb(err); return; }
-      fetch(blobUrl)
-        .then(function(r){ return r.arrayBuffer(); })
-        .then(function(buf){ cb(null, {data: buf}); })
-        .catch(function(e){ cb(e); });
+    sliceTile(tx,ty,function(err,buf){
+      if(err) cb(err);
+      else cb(null,{data:buf});
     });
-
-    return function(){}; // cancel fn
+    return function(){};
   });
 })();
 
