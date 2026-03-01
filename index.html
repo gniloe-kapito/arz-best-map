@@ -206,19 +206,13 @@ const ICONS={
 };
 function mkIcon(k){ return ICONS[k]||ICONS['house_0']; }
 
-const TILE='https://arz.danvox123hyu.workers.dev/tile/{z}/{x}/{y}';
-const MAP_BG='https://static.wikia.nocookie.net/gtawiki/images/a/a6/StateofSanAndreas-GTASA-TerrainMap.jpg/revision/latest?cb=20140207210705';
 const BT={0:'Амуниция/Тир',1:'Бар',2:'Магазин 24/7',3:'Магазин одежды',4:'Городская ферма'};
 const ICON={house_0:['#3b8beb','🏠'],house_2:['#e74c3c','🔨'],business_0:['#e8a020','🏪'],business_1:['#2ecc71','🏪'],business_2:['#e74c3c','🔨']};
 
 let allH=[],allB=[],shown=[],selectedId=null,selectedType=null,popupItem=null,sq='',sH=true,sB=true,sA=false,lastSyncTs=0;
 const map=new maplibregl.Map({
   container:'map',
-  style:{version:8,sources:{
-    bg:{type:'raster',tiles:[TILE],tileSize:256,minzoom:3,maxzoom:3}
-  },layers:[
-    {id:'bg',type:'raster',source:'bg','paint':{'raster-opacity':0.92}}
-  ]},
+  style:{version:8,sources:{},layers:[]},
   center:[0,0],zoom:3,minZoom:2,maxZoom:6,attributionControl:false,dragRotate:false,pitchWithRotate:false,touchPitch:false,touchZoomRotate:false
 });
 
