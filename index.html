@@ -201,13 +201,17 @@ let allH=[],allB=[],shown=[],selectedId=null,selectedType=null,popupItem=null,sq
 const map=new maplibregl.Map({
   container:'map',
   style:{version:8,sources:{
+    bgimg:{type:'image',url:MAP_BG,coordinates:[[-180,85.0511287798066],[90,85.0511287798066],[90,-66.51326044311186],[-180,-66.51326044311186]]},
     bg:{type:'raster',tiles:[TILE],tileSize:256,minzoom:3,maxzoom:3}
   },layers:[
-    {id:'bg-fill',type:'background',paint:{'background-color':'#0d1117'}},
-    {id:'bg',type:'raster',source:'bg'}
+    {id:'bgimg',type:'raster',source:'bgimg'},
+    {id:'bg',type:'raster',source:'bg','paint':{'raster-opacity':0.92}}
   ]},
-  center:[0,0],zoom:3,minZoom:2,maxZoom:6,attributionControl:false,dragRotate:false,pitchWithRotate:false
+  center:[0,0],zoom:3,minZoom:2,maxZoom:6,attributionControl:false,dragRotate:false,pitchWithRotate:false,touchPitch:false,touchZoomRotate:false
 });
+
+// Отключить вращение двумя пальцами на мобилке
+map.touchZoomRotate.disableRotation();
 
 function gameToLngLat(x,y){
   const world=256*Math.pow(2,3);
@@ -275,11 +279,29 @@ function setMapBounds(){
   map.setMaxBounds(bounds);
 }
 
+function fmtTimeLeft(ts){
+  if(!ts) return null;
+  const diff=ts*1000-Date.now();
+  if(diff<=0) return 'завершён';
+  const h=Math.floor(diff/3600000);
+  const m=Math.floor((diff%3600000)/60000);
+  if(h>=24){ const d=Math.floor(h/24); return d+'д '+(h%24)+'ч'; }
+  if(h>0) return h+'ч '+m+'мин';
+  return m+'мин';
+}
+
 function popupHtml(d){
   const isH=d.t==='h',au=d.status==='auction'||d.bstatus==='auction';
   const status=au?'🔨 Аукцион':(d.owner==='The State'?'🟢 Свободен':'✅ Занят');
   const sub=isH?`🏠 Дом #${d.did}`:`🏪 Бизнес #${d.did} · ${(BT[d.type]||('Тип '+d.type))}`;
-  return `<div class="pc"><div class="ph"><img src="${mkIcon(d.k||'house_0')}"><div class="pt">${d.name||'Объект'}</div></div><div class="pi">${sub}</div><div class="pr"><span class="pl">Владелец</span><span class="pv hl">${d.owner||'—'}</span></div><div class="pr"><span class="pl">Статус</span><span class="pv ${au?'au':''}">${status}</span></div></div>`;
+  let extra='';
+  if(isH && au){
+    if(d.auStartPrice) extra+=`<div class="pr"><span class="pl">Старт. цена</span><span class="pv au">${Number(d.auStartPrice).toLocaleString()} $</span></div>`;
+    if(d.auMinBet)     extra+=`<div class="pr"><span class="pl">Мин. ставка</span><span class="pv au">${Number(d.auMinBet).toLocaleString()} $</span></div>`;
+    const tl=fmtTimeLeft(d.auTimeEnd);
+    if(tl) extra+=`<div class="pr"><span class="pl">Осталось</span><span class="pv au">⏱ ${tl}</span></div>`;
+  }
+  return `<div class="pc"><div class="ph"><img src="${mkIcon(d.k||'house_0')}"><div class="pt">${d.name||'Объект'}</div></div><div class="pi">${sub}</div><div class="pr"><span class="pl">Владелец</span><span class="pv hl">${d.owner||'—'}</span></div><div class="pr"><span class="pl">Статус</span><span class="pv ${au?'au':''}">${status}</span></div>${extra}</div>`;
 }
 
 function positionPopup(){ if(!popupItem)return; const p=map.project(popupItem.geometry.coordinates); const mapEl=document.getElementById('map'); const main=mapEl.parentElement.getBoundingClientRect(); const mr=mapEl.getBoundingClientRect(); const el=document.getElementById('custom-popup'); el.style.left=(mr.left-main.left+p.x)+'px'; el.style.top=(mr.top-main.top+p.y)+'px'; }
