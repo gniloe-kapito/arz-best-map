@@ -4,7 +4,16 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" href="https://i.pinimg.com/236x/51/d2/3d/51d23d281b5a29a71ab0e2e79252ab76.jpg">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Queen Creek Map — Arizona RP by Nikitos_Ciganin</title>
+<title>Queen Creek Map — Arizona RP</title>
+<meta name="description" content="Улучшенная карта сервера Queen Creek | Arizona RP. by Nikitos_Ciganin">
+<meta property="og:title" content="Queen Creek Map — Arizona RP">
+<meta property="og:description" content="Улучшенная карта сервера Queen Creek | Arizona RP. by Nikitos_Ciganin">
+<meta property="og:image" content="https://i.pinimg.com/236x/51/d2/3d/51d23d281b5a29a71ab0e2e79252ab76.jpg">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Queen Creek Map — Arizona RP">
+<meta name="twitter:description" content="Улучшенная карта сервера Queen Creek | Arizona RP. by Nikitos_Ciganin">
+<meta name="twitter:image" content="https://i.pinimg.com/236x/51/d2/3d/51d23d281b5a29a71ab0e2e79252ab76.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
@@ -56,7 +65,7 @@ header{background:var(--panel);border-bottom:1px solid var(--border);padding:0 2
 #upd-status{color:var(--dim)} #upd-status.loading{color:var(--accent)} #upd-status.ok{color:#2ecc71} #upd-status.err{color:var(--red)}
 .rbtn{background:none;border:1px solid var(--border);color:var(--dim);padding:3px 8px;font-family:'Share Tech Mono',monospace;font-size:10px;cursor:pointer;border-radius:3px}
 .main{display:flex;flex:1;overflow:hidden}#map{flex:1;background:#0d1117}.sb-head{padding:11px 15px;border-bottom:1px solid var(--border);font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--dim)}
-.sb-list{flex:1;overflow-y:auto}.li{padding:8px 13px;border-bottom:1px solid rgba(30,39,51,.5);cursor:pointer;display:flex;align-items:flex-start;gap:8px}
+.sidebar{display:flex;flex-direction:column;width:280px;min-width:220px;background:var(--panel);border-left:1px solid var(--border);overflow:hidden}.sb-list{flex:1;overflow-y:auto;min-height:0}.li{padding:8px 13px;border-bottom:1px solid rgba(30,39,51,.5);cursor:pointer;display:flex;align-items:flex-start;gap:8px}
 .li.sel{background:rgba(232,160,32,.07);border-left:2px solid var(--accent);padding-left:11px}.li-ico{width:26px;height:26px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
 .li-info{flex:1;min-width:0}.li-id{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim)}.li-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .li-owner{font-size:11px;color:var(--dim)}.li-owner b{color:var(--accent2);font-weight:500}.badge{font-size:9px;font-family:'Share Tech Mono',monospace;padding:2px 5px;border-radius:2px}
@@ -305,10 +314,11 @@ function setSources(){
   }});
 
   // Выделение — подсветка кружком под иконкой
-  map.addLayer({id:'selected-glow',type:'circle',source:'selected',paint:{'circle-radius':10,'circle-color':'#e8a020','circle-opacity':0.25}});
+  map.addLayer({id:'selected-glow-outer',type:'circle',source:'selected',paint:{'circle-radius':22,'circle-color':'#e8a020','circle-opacity':0.15,'circle-stroke-width':2,'circle-stroke-color':'#e8a020','circle-stroke-opacity':0.6}});
+  map.addLayer({id:'selected-glow',type:'circle',source:'selected',paint:{'circle-radius':15,'circle-color':'#e8a020','circle-opacity':0.45,'circle-stroke-width':2,'circle-stroke-color':'#fff','circle-stroke-opacity':0.9}});
   map.addLayer({id:'selected-point',type:'symbol',source:'selected',layout:{
     'icon-image':['get','icon'],
-    'icon-size':1.4,
+    'icon-size':1.8,
     'icon-allow-overlap':true,
     'icon-ignore-placement':true,
   }});
