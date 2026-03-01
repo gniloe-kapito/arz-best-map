@@ -246,25 +246,36 @@ function loadMapImages(cb){
 }
 
 function setSources(){
-  // ── ТАЙЛОВЫЙ ФОН 6000×6000 → сетка 12×12 по 512px ──────────────────────
-  // Координаты всей карты (соответствуют gameToLngLat(-3000,3000) и gameToLngLat(3000,-3000))
-  const NW = gameToLngLat(-3000,  3000);
-  const SE = gameToLngLat( 3000, -3000);
+  // ── ТАЙЛОВЫЙ ФОН 6000×6000 → сетка 12×12 по 500px ──────────────────────
+  // Координаты вычисляются через gameToLngLat по пиксельным границам тайлов,
+  // чтобы учесть нелинейность проекции Меркатора (иначе верх вытягивается)
   const COLS = 12, ROWS = 12;
-  const lngStep = (SE[0] - NW[0]) / COLS;
-  const latStep = (NW[1] - SE[1]) / ROWS;
+  const TILE_PX = 500; // 6000 / 12 = 500px на тайл
+  const GAME_SIZE = 6000; // игровые единицы всей карты
+  const GAME_HALF = 3000;
+
+  // Перевод пикселя тайловой сетки → игровые координаты → lngLat
+  function tilePixelToLngLat(px, py) {
+    const gx = (px / GAME_SIZE) * GAME_SIZE - GAME_HALF;
+    const gy = GAME_HALF - (py / GAME_SIZE) * GAME_SIZE;
+    return gameToLngLat(gx, gy);
+  }
 
   for(let row=0; row<ROWS; row++){
     for(let col=0; col<COLS; col++){
-      const west  = NW[0] + col * lngStep;
-      const east  = west  + lngStep;
-      const north = NW[1] - row * latStep;
-      const south = north - latStep;
+      const px0 = col * TILE_PX,       py0 = row * TILE_PX;
+      const px1 = (col + 1) * TILE_PX, py1 = (row + 1) * TILE_PX;
+
+      const nw = tilePixelToLngLat(px0, py0);
+      const ne = tilePixelToLngLat(px1, py0);
+      const se = tilePixelToLngLat(px1, py1);
+      const sw = tilePixelToLngLat(px0, py1);
+
       const sid = `fone-${col}-${row}`;
       map.addSource(sid,{
         type:'image',
         url:`tiles/${col}_${row}.png`,
-        coordinates:[[west,north],[east,north],[east,south],[west,south]]
+        coordinates:[nw, ne, se, sw]
       });
       map.addLayer({
         id:`fone-layer-${col}-${row}`,
