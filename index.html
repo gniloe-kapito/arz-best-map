@@ -8,27 +8,32 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
 // ── МОБИЛЬНЫЙ SHEET ──────────────────────────────────────────────────────────
 window.toggleSheet=function(){
   const sb=document.getElementById('sidebar');
   sb.classList.toggle('open');
 };
 
-// Закрывать sheet при тапе на карту
-document.getElementById('map').addEventListener('click',function(){
-  const sb=document.getElementById('sidebar');
-  if(sb.classList.contains('open')) sb.classList.remove('open');
+// Закрывать sheet при тапе на карту — вешаем после загрузки DOM
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('map').addEventListener('click',function(){
+    const sb=document.getElementById('sidebar');
+    if(sb.classList.contains('open')) sb.classList.remove('open');
+  });
 });
 
-// Автооткрытие sheet при выборе объекта из pick()
-const _origPick=window.pick;
-window.pick=function(i){
-  _origPick(i);
-  // На мобилке закрыть sheet после выбора
-  if(window.innerWidth<=768){
-    setTimeout(()=>{ document.getElementById('sidebar').classList.remove('open'); },300);
-  }
+// Переопределение pick() — делаем через обёртку после загрузки всего скрипта
+window._mobilePickPatch=function(){
+  const _origPick=window.pick;
+  if(typeof _origPick!=='function') return;
+  window.pick=function(i){
+    _origPick(i);
+    if(window.innerWidth<=768){
+      setTimeout(()=>{ document.getElementById('sidebar').classList.remove('open'); },300);
+    }
+  };
 };
 </script>
 <style>
@@ -333,6 +338,8 @@ function renderSidebar(){
 }
 
 window.pick=function(i){ const f=shown[i]; if(!f) return; map.flyTo({center:f.geometry.coordinates,zoom:Math.max(map.getZoom(),4)}); setSelected(f.properties.id,f.properties.t); showPopup(f); };
+// Применяем мобильный патч сразу после определения pick
+if(typeof window._mobilePickPatch==='function') window._mobilePickPatch();
 
 function parse(j){
   const H=[],B=[];
@@ -443,27 +450,6 @@ document.querySelectorAll('.fbtn').forEach(btn=>btn.addEventListener('click',()=
 let st;document.getElementById('q').addEventListener('input',e=>{clearTimeout(st);st=setTimeout(()=>{sq=e.target.value.trim();render();},220)});
 document.addEventListener('mousedown',e=>{const p=document.getElementById('custom-popup');if(!p.classList.contains('visible'))return;const wrap=p.querySelector('.cp-wrap');if(wrap&&!wrap.contains(e.target))closePopup();});
 
-// ── МОБИЛЬНЫЙ SHEET ──────────────────────────────────────────────────────────
-window.toggleSheet=function(){
-  const sb=document.getElementById('sidebar');
-  sb.classList.toggle('open');
-};
-
-// Закрывать sheet при тапе на карту
-document.getElementById('map').addEventListener('click',function(){
-  const sb=document.getElementById('sidebar');
-  if(sb.classList.contains('open')) sb.classList.remove('open');
-});
-
-// Автооткрытие sheet при выборе объекта из pick()
-const _origPick=window.pick;
-window.pick=function(i){
-  _origPick(i);
-  // На мобилке закрыть sheet после выбора
-  if(window.innerWidth<=768){
-    setTimeout(()=>{ document.getElementById('sidebar').classList.remove('open'); },300);
-  }
-};
 </script>
 </body>
 </html>
