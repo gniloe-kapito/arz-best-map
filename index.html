@@ -386,17 +386,23 @@ if(typeof window._mobilePickPatch==='function') window._mobilePickPatch();
 
 function parse(j){
   const H=[],B=[];
-  (j.houses.hasOwner||[]).forEach(h=>{h.status='owned';H.push(h)});
+  (j.houses.hasOwner||[]).forEach(h=>{h.status=h.hasAuction?'auction':'owned';H.push(h)});
   (j.houses.onAuction||[]).forEach(h=>{h.status='auction';H.push(h)});
   (j.houses.noOwner||[]).forEach(h=>{h.status='free';H.push(h)});
+  if(!H.length&&Array.isArray(j.houses)){
+    j.houses.forEach(h=>{h.status=h.hasAuction?'auction':(h.owner&&h.owner!=='The State'?'owned':'free');H.push(h);});
+  }
   (j.businesses.onAuction||[]).forEach(b=>{b.bstatus='auction';B.push(b)});
   const na=j.businesses.noAuction||{};
   if(Array.isArray(na)){
-    na.forEach(b=>{if(b){b.bstatus='owned';B.push(b);}});
+    na.forEach(b=>{if(b){b.bstatus=b.hasAuction?'auction':'owned';B.push(b);}});
   }else{
     Object.values(na).forEach(arr=>{
-      if(Array.isArray(arr)) arr.forEach(b=>{if(b){b.bstatus='owned';B.push(b);}});
+      if(Array.isArray(arr)) arr.forEach(b=>{if(b){b.bstatus=b.hasAuction?'auction':'owned';B.push(b);}});
     });
+  }
+  if(!B.length&&Array.isArray(j.businesses)){
+    j.businesses.forEach(b=>{b.bstatus=b.hasAuction?'auction':'owned';B.push(b);});
   }
   return {H,B};
 }
@@ -449,7 +455,7 @@ window.loadData=function(){
       document.getElementById('offline-screen').classList.remove('show');
       render();
     })
-    .catch(()=>{
+    .catch((err)=>{console.error('loadData error:',err);
       const hasCache=restoreCache();
       if(hasCache){
         const n=new Date(lastSyncTs);
