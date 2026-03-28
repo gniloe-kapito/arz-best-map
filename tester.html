@@ -194,7 +194,7 @@ header{background:var(--panel);border-bottom:1px solid var(--border);padding:0 2
   <div class="sidebar" id="sidebar"><div class="sb-handle"></div><div class="sb-head" onclick="toggleSheet()">Объекты · <span id="cnt">0</span><span class="sb-arrow">▲</span></div><div class="sb-list" id="list"></div></div>
 </div>
 <script>
-var PROXY='https://arz.danvox123hyu.workers.dev/';
+var PROXY='https://arz.danvox123hyu.workers.dev';
 const ICONS={
   'house_0':'icons/house_0.png',
   'house_1':'icons/house_1.png',
@@ -434,7 +434,7 @@ function unwrapPayload(j){
 }
 
 async function fetchData(){
-  const r=await fetch(PROXY,{cache:'no-store'});
+  const r=await fetch(PROXY+'/map/21',{cache:'no-store'});
   if(!r.ok) throw new Error('http '+r.status);
   return r.json();
 }
