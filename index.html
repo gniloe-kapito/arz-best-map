@@ -342,7 +342,7 @@ function popupHtml(d){
   const status=au?'🔨 Аукцион':(d.owner==='The State'?'🟢 Свободен':'✅ Занят');
   const sub=isH?`🏠 Дом #${d.did}`:`🏪 Бизнес #${d.did} · ${(BT[d.type]||('Тип '+d.type))}`;
   let extra='';
-  if(isH && au){
+  if(au){
     if(d.auStartPrice) extra+=`<div class="pr"><span class="pl">Старт. цена</span><span class="pv au">${Number(d.auStartPrice).toLocaleString()} $</span></div>`;
     if(d.auMinBet)     extra+=`<div class="pr"><span class="pl">Мин. ставка</span><span class="pv au">${Number(d.auMinBet).toLocaleString()} $</span></div>`;
     const tl=fmtTimeLeft(d.auTimeEnd);
