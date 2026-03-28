@@ -227,7 +227,7 @@ function gameToLngLat(x,y){
   return [lng,lat];
 }
 function hKey(h){ if(h.status==='auction')return'house_2'; if(h.status==='free'||h.owner==='The State')return'house_1'; return'house_0'; }
-function bKey(b){ if(b.owner==='The State')return'business_1'; if(b.bstatus==='auction')return'business_2'; return'business_0'; }
+function bKey(b){ if(b.bstatus==='auction')return'business_2'; if(b.owner==='The State')return'business_1'; return'business_0'; }
 
 
 
