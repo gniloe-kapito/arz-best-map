@@ -207,6 +207,31 @@ function mkIcon(k){ return ICONS[k]||ICONS['house_0']; }
 
 const BT={0:'Амуниция/Тир',1:'Бар',2:'Магазин 24/7',3:'Магазин одежды',4:'Городская ферма'};
 
+const BUSINESS_POSITION_OVERRIDES={
+  331:{lx:353.0,ly:1301.0},
+  332:{lx:363.0,ly:1337.0},
+  333:{lx:408.0,ly:1416.0},
+  334:{lx:404.0,ly:1468.0},
+  335:{lx:411.0,ly:1521.0},
+  336:{lx:422.0,ly:1572.0},
+  337:{lx:486.0,ly:1530.0},
+  338:{lx:423.0,ly:1271.0},
+  339:{lx:531.0,ly:1476.0},
+  340:{lx:496.0,ly:1394.0},
+  341:{lx:480.0,ly:1309.0},
+  342:{lx:572.0,ly:1430.0},
+  343:{lx:557.0,ly:1309.0},
+  344:{lx:577.0,ly:1343.0},
+  345:{lx:620.0,ly:1356.0},
+  346:{lx:593.0,ly:1508.0},
+  347:{lx:642.0,ly:1480.0},
+};
+
+function applyBusinessPositionOverride(b){
+  const ov=BUSINESS_POSITION_OVERRIDES[b.id];
+  return ov?{...b,lx:ov.lx,ly:ov.ly}:b;
+}
+
 let allH=[],allB=[],shown=[],selectedId=null,selectedType=null,popupItem=null,sq='',sH=true,sB=true,sA=false,lastSyncTs=0;
 const map=new maplibregl.Map({
   container:'map',
@@ -393,17 +418,17 @@ function parse(j){
   if(!H.length&&Array.isArray(j.houses)){
     j.houses.forEach(h=>{h.status=h.hasAuction?'auction':(h.owner&&h.owner!=='The State'?'owned':'free');H.push(h);});
   }
-  (j.businesses.onAuction||[]).forEach(b=>{b.bstatus='auction';B.push(b)});
+  (j.businesses.onAuction||[]).forEach(b=>{b.bstatus='auction';B.push(applyBusinessPositionOverride(b))});
   const na=j.businesses.noAuction||{};
   if(Array.isArray(na)){
-    na.forEach(b=>{if(b){b.bstatus=b.hasAuction?'auction':'owned';B.push(b);}});
+    na.forEach(b=>{if(b){b.bstatus=b.hasAuction?'auction':'owned';B.push(applyBusinessPositionOverride(b));}});
   }else{
     Object.values(na).forEach(arr=>{
-      if(Array.isArray(arr)) arr.forEach(b=>{if(b){b.bstatus=b.hasAuction?'auction':'owned';B.push(b);}});
+      if(Array.isArray(arr)) arr.forEach(b=>{if(b){b.bstatus=b.hasAuction?'auction':'owned';B.push(applyBusinessPositionOverride(b));}});
     });
   }
   if(!B.length&&Array.isArray(j.businesses)){
-    j.businesses.forEach(b=>{b.bstatus=b.hasAuction?'auction':'owned';B.push(b);});
+    j.businesses.forEach(b=>{b.bstatus=b.hasAuction?'auction':'owned';B.push(applyBusinessPositionOverride(b));});
   }
   return {H,B};
 }
